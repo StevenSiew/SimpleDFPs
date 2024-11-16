@@ -1,0 +1,265 @@
+SimpleDFPs is Precision Decimal Floating Point which is a Julia module which
+brings arbitary precision Decimal Floating Point to the Julia language.
+
+Quick Start
+
+You can use SimpleDFP in Julia as below
+
+    Starting Julia...
+                   _
+       _       _ _(_)_     |  Documentation: https://docs.julialang.org
+      (_)     | (_) (_)    |
+       _ _   _| |_  __ _   |  Type "?" for help, "]?" for Pkg help.
+      | | | | | | |/ _` |  |
+      | | |_| | | | (_| |  |  Version 1.0.0 (2018-08-08)
+     _/ |\__'_|_|_|\__'_|  |  Official https://julialang.org/ release
+    |__/                   |
+
+    julia> using SimpleDFPs
+
+    julia> DFP_getDefaultPrecision()    # Find current default precision
+    16
+
+    julia> DFP_setDefaultPrecision(4)   # Set the default precision to 4
+    4
+
+    julia> DFP_getDefaultPrecision()    # Find current default precision again
+    4
+
+The command "DFP_setDefaultPrecision(4)" set the DefaultPrecision of the
+DFP to 4 decimal digits. To assign a value to a DFP variable, the basic
+instruction is as below.
+
+    julia> a = DFP("1.234")      # Using a string literal as input is the best
+    DFP{4}(0, 0, [1, 2, 3, 4])
+
+    julia> print( DFP_toCommonString(a) )
+    1.234
+
+    julia> b = DFP("9.876E5")
+    DFP{4}(0, 5, [9, 8, 7, 6])
+
+    julia> print( DFP_toCommonString(b) )
+    9.876E5
+
+    julia> c = a + b
+    DFP{4}(0, 5, [9, 8, 7, 6])
+
+    julia> print( DFP_toCommonString(c) )
+    9.876E5
+
+The function DFP_toCommonString() converts a DFP value into a string. The
+basic struct of a DFP "object" is
+
+    struct DFP{N} <: Real
+        s::Int8
+        expo::BigInt
+        m::Array{Int8,1}
+    end
+
+And it is represented as something like
+
+    DFP{4}(0, 5, [9, 8, 7, 6])
+
+The first 0 in the bracket as in "(0, 5, [9, 8, 7, 6])" is the sign flag. It
+has the value 1 if the number is Negative and the value 0 is the number is Positive.
+
+The next digit with value of 5 is the exponent. You can see it in the following:
+
+    julia> function pe(x::DFP) print( DFP_toExplainationString(x) ) end
+    pe (generic function with 1 method)
+
+    julia> pe(c)
+    +1 * 9.876 * 10^5
+
+You can clearly see that [9, 8, 7, 6] are the mantissa of the decimal floating point
+number
+
+We can see the common value of a DFP "object" using the following function
+
+    julia> function pc(x::DFP) print( DFP_toCommonString(x) ) end
+    pc (generic function with 1 method)
+
+    julia> pc(b)
+    9.876E5
+
+These function below will print out the same value in different formats.
+
+    julia> function pe(x::DFP) print( DFP_toExplainationString(x) ) end
+    pe (generic function with 1 method)
+
+    julia> function pf(x::DFP) print( DFP_toFortranString(x) ) end
+    pf (generic function with 1 method)
+
+    julia> function ps(x::DFP) print( DFP_toShortCommonString(x) ) end
+    ps (generic function with 1 method)
+
+To see the same value of b using the newly created functions pc(), pe(),
+pf() and ps()
+
+    julia> b
+    DFP{4}(0, 5, [9, 8, 7, 6])
+
+    julia> pc(b)
+    9.876E5
+
+    julia> pe(b)
+    +1 * 9.876 * 10^5
+
+    julia> pf(b)
+    9.876E5
+
+    julia> ps(b)
+    9.876E5
+
+A bit of explaination here. Function pc() is printing the value of b using
+print( DFP_toCommonString(x) ) which prints out the Common String format of
+a DFP value.
+
+pe() is printing out the "Explainatory" string of a DFP value
+
+pf() is printing out the Fortran scientific format string of a DFP value
+
+ps() is printing out the Short (6 digits) form string of a DFP value
+
+The other way of seeing the value of a DFP "object" is to use string()
+function.
+
+    julia> string(b)
+    "9.876E5"
+
+    julia> b |> string
+    "9.876E5"
+
+Here the "|>" is the pipe function, "b |> string"  does exactly the same thing
+as "string(b)"
+
+So we can do this
+
+    julia> DFP("123.4332") - DFP("73.24") |> string
+    "50.16"
+
+Instead of
+
+    julia> DFP("123.4332") - DFP("73.24")
+    DFP{4}(0, 1, [5, 0, 1, 6])
+
+We can check the Default Precision of DFP module using
+
+    julia> DFP_getDefaultPrecision()
+    4
+
+Let's set the DefaultPrecision to 36 decimal digits
+
+    julia> DFP_setDefaultPrecision(36)
+    36
+
+    julia> a = DFP(pi)
+    DFP{36}(0, 0, [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3, 3, 8, 3, 2, 7, 9, 5, 0, 2, 8, 8])
+
+    julia> pc(a)
+    3.14159265358979323846264338327950288
+
+    julia> ps(a)
+    3.14159
+
+Here we can see that the Short form of the DFP "object" is much more useful
+to us in the day to day usage of the DFP.
+
+    julia> b = a * a * a * a
+    DFP{36}(0, 1, [9, 7, 4, 0, 9, 0, 9, 1, 0, 3, 4, 0, 0, 2, 4, 3, 7, 2, 3, 6, 4, 4, 0, 3, 3, 2, 6, 8, 8, 7, 0, 5, 1, 1, 0, 8])
+
+    julia> ps(b)
+    97.4091
+
+    julia> pf(b)
+    9.74090910340024372364403326887051108E1
+
+Please also note that ps() rounds up the value to 97.4091 from 97.409091...
+and pf() gives the number is Fortran Scientific notation with a E1 at the
+end.
+
+Enough playing around with the representation of DFP in a string, let's
+move onwards to other topics.
+
+Even though we set the Default Precision of DFP module to 36 decimal
+digits, we can still create DFP "objects" with other precisions. For
+example:
+
+    julia> g = DFP(1.23456789,5)
+    DFP{5}(0, 0, [1, 2, 3, 4, 6])
+
+    julia> h = a + g
+    ERROR: promotion of types DFP{36} and DFP{5} failed to change any arguments
+    Stacktrace:
+    [1] error(::String, ::String, ::String)
+     @ Base ./error.jl:42
+    [2] sametype_error(input::Tuple{DFP{36}, DFP{5}})
+     @ Base ./promotion.jl:316
+    [3] not_sametype(x::Tuple{DFP{36}, DFP{5}}, y::Tuple{DFP{36}, DFP{5}})
+     @ Base ./promotion.jl:310
+    [4] promote
+     @ ./promotion.jl:293 [inlined]
+    [5] +(x::DFP{4}, y::DFP{5})
+    @ Base ./promotion.jl:321
+    [6] top-level scope
+    @ REPL[10]:1
+
+    julia> h
+    ERROR: UndefVarError: h not defined
+
+The reason you get an error message is because you cannot add a 36 digits
+precision DFP struct to a 5 digits precision DFP struct.
+
+You can change the precision of a DFP struct using the following function
+
+    DFP_setPrecision
+
+    julia> h = a + DFP_setPrecision(g,36)
+    DFP{36}(0, 0, [4, 3, 7, 6, 1, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3, 3, 8, 3, 2, 7, 9, 5, 0, 2, 8, 8])
+
+or use the function DFP_getPrecision to get the precision of a DFP struct
+
+    julia> h = a + DFP_setPrecision(g, DFP_getPrecision(a))
+    DFP{36}(0, 0, [4, 3, 7, 6, 1, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3, 3, 8, 3, 2, 7, 9, 5, 0, 2, 8, 8])
+
+you could define a function to do this for you
+
+    julia> function DFP_setPrecision_as(A::DFP,B::DFP)
+               return DFP_setPrecision(A,DFP_getPrecision(B))
+           end
+
+Then you can do
+
+    julia> h = a + DFP_setPrecision_as(g,a)
+    DFP{36}(0, 0, [4, 3, 7, 6, 1, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3, 3, 8, 3, 2, 7, 9, 5, 0, 2, 8, 8])
+
+It may be you don't need to know all 36 digits of h, you can control the style of DFP using
+
+    julia> DFP_setShowStyle(:tiny)
+    :tiny
+
+    julia> DFP_getShowStyle()
+    :tiny
+
+    julia> h
+    4.376
+
+    julia> DFP_setShowStyle()
+    Error! Invalid symbol or no argument given.
+    Controls how Base.show displays a DFP object
+    The valid values are
+    1.  :default  or  :canon         for canonical string output
+    2.  :normal   or  :string        for complete string output
+    3.  :short    or  :shortstring   for short string output
+    4.  :tiny     or  :tinystring    for tiny string output
+    5.  <num>                        for <num> digits string output
+
+    julia> DFP_setShowStyle(:default)
+    :default
+
+    julia> DFP_getShowStyle()
+    :default
+
+    julia> h
+    DFP{36}(0, 0, [4, 3, 7, 6, 1, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3, 3, 8, 3, 2, 7, 9, 5, 0, 2, 8, 8])
